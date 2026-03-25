@@ -3,97 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tyska Växelprepositioner</title>
+    <title>Tyska Meningar - Växelprepositioner</title>
     <style>
         :root { --primary: #4a90e2; --success: #2ecc71; --error: #e74c3c; --bg: #f4f7f6; --text: #2c3e50; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; width: 100%; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 650px; width: 100%; }
         h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
         .sub-header { text-align: center; font-size: 0.9rem; margin-bottom: 20px; color: #7f8c8d; }
+        
         .progress-container { background: #eee; border-radius: 10px; height: 10px; margin: 20px 0; overflow: hidden; }
         #progress-bar { background: var(--success); width: 0%; height: 100%; transition: width 0.3s; }
-        .task-card { background: #f9f9f9; border-left: 5px solid var(--primary); padding: 20px; margin: 20px 0; border-radius: 4px; position: relative; }
-        .hint-icon { cursor: pointer; font-size: 1.2rem; margin-left: 10px; vertical-align: middle; opacity: 0.6; }
+        
+        .task-card { background: #f9f9f9; border-left: 5px solid var(--primary); padding: 20px; margin: 20px 0; border-radius: 4px; }
+        .genus-tag { padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-left: 5px; color: white; }
+        .m { background: #3498db; } .f { background: #e91e63; } .n { background: #27ae60; }
+        
         input[type="text"] { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
         button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        
         .feedback { margin-top: 15px; padding: 15px; border-radius: 6px; display: none; text-align: center; font-weight: bold; }
-        .instruction-text { font-style: italic; color: var(--primary); margin-bottom: 10px; display: block; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .label { font-weight: bold; color: #34495e; }
+
+        /* Grammatik-tabell */
+        .grammar-table { width: 100%; margin-top: 30px; border-collapse: collapse; font-size: 0.85rem; background: #fff; border: 1px solid #eee; }
+        .grammar-table th { background: #f1f4f9; padding: 10px; text-align: left; border-bottom: 2px solid var(--primary); }
+        .grammar-table td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+        .case-label { font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🇩🇪 Wechselpräpositionen</h1>
-    <p class="sub-header">Träna på rätt kasus och artikel</p>
+    <h1>🇩🇪 Satzbau-Trainer</h1>
+    <p class="sub-header">Bygg hela meningen med rätt böjning och kasus</p>
     
     <div class="progress-container"><div id="progress-bar"></div></div>
 
     <div id="quiz-area">
         <div class="task-card">
-            <span class="instruction-text" id="quest-text">Hur säger man...</span>
-            <p><strong>Verb:</strong> <span id="verb-display">-</span></p>
-            <p><strong>Substantiv:</strong> <span id="noun-display">-</span> <span class="hint-icon" onclick="showHint()">✉️</span></p>
-            <p><strong>Preposition:</strong> <span id="prep-display">-</span></p>
+            <p style="font-style: italic; color: var(--primary);">Översätt till tyska:</p>
+            <h3 id="quest-text" style="margin: 10px 0;">Laddar...</h3>
+            
+            <div class="info-grid">
+                <div><span class="label">Subjekt:</span> <span id="subj-display">-</span></div>
+                <div><span class="label">Verb:</span> <span id="verb-display">-</span></div>
+                <div><span class="label">Objekt:</span> <span id="noun-display">-</span> <span id="genus-display"></span></div>
+                <div><span class="label">Prep:</span> <span id="prep-display">-</span></div>
+            </div>
         </div>
 
-        <input type="text" id="user-answer" placeholder="t.ex. auf den Tisch" autocomplete="off">
-        <button id="submit-btn" onclick="checkAnswer()">Kontrollera svar</button>
+        <input type="text" id="user-answer" placeholder="Skriv hela meningen..." autocomplete="off">
+        <button onclick="checkAnswer()">Kontrollera mening</button>
         <div id="feedback" class="feedback"></div>
     </div>
+
+    <table class="grammar-table">
+        <thead>
+            <tr>
+                <th>Genus</th>
+                <th>Ackusativ <br><small>(Rörelse / Wohin?)</small></th>
+                <th>Dativ <br><small>(Position / Wo?)</small></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="genus-tag m">M</span> Maskulin (der)</td>
+                <td><span class="case-label">den</span></td>
+                <td><span class="case-label">dem</span> (am/im)</td>
+            </tr>
+            <tr>
+                <td><span class="genus-tag f">F</span> Feminin (die)</td>
+                <td><span class="case-label">die</span></td>
+                <td><span class="case-label">der</span></td>
+            </tr>
+            <tr>
+                <td><span class="genus-tag n">N</span> Neutrum (das)</td>
+                <td><span class="case-label">das</span></td>
+                <td><span class="case-label">dem</span> (am/im)</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
 <script>
-    // Logiska kombinationer för att undvika "hänga upp ett skrivbord"
+    const pronouns = [
+        { de: "ich", ending: "e", sv: "Jag" },
+        { de: "du", ending: "st", sv: "Du" },
+        { de: "er", ending: "t", sv: "Han" },
+        { de: "wir", ending: "en", sv: "Vi" },
+        { de: "ihr", ending: "t", sv: "Ni" }
+    ];
+
     const scenarios = [
-        { v: "stellen", v_sv: "ställer", prep: "auf", n: "Schreibtisch", g: "m", c: "A" },
-        { v: "stehen", v_sv: "står", prep: "auf", n: "Teppich", g: "m", c: "D" },
-        { v: "legen", v_sv: "lägger", prep: "på", prep_de: "auf", n: "Bett", g: "n", c: "A" },
-        { v: "liegen", v_sv: "ligger", prep: "på", prep_de: "auf", n: "Sofa", g: "n", c: "D" },
-        { v: "hängen", v_sv: "hänger upp", prep: "på", prep_de: "an", n: "Wand", g: "f", c: "A" }, // Wand tillagd för logik
-        { v: "hängen", v_sv: "hänger (är på)", prep: "på", prep_de: "an", n: "Bild", g: "n", c: "D" },
-        { v: "setzen", v_sv: "sätter (sig)", prep: "på", prep_de: "auf", n: "Stuhl", g: "m", c: "A" },
-        { v: "sitzen", v_sv: "sitter", prep: "på", prep_de: "Sessel", g: "m", c: "D", prep_de: "in" },
-        { v: "stellen", v_sv: "ställer", prep: "i", prep_de: "in", n: "Schrank", g: "m", c: "A" },
-        { v: "stehen", v_sv: "står", prep: "i", prep_de: "in", n: "Regal", g: "n", c: "D" },
-        { v: "legen", v_sv: "lägger", prep: "på", prep_de: "auf", n: "Kommode", g: "f", c: "A" },
-        { v: "sein", v_sv: "är", prep: "under", prep_de: "unter", n: "Tisch", g: "m", c: "D" },
-        { v: "stellen", v_sv: "ställer", prep: "bredvid", prep_de: "neben", n: "Fernseher", g: "m", c: "A" },
-        { v: "liegen", v_sv: "ligger", prep: "på", prep_de: "auf", n: "Kissen", g: "n", c: "D" }
+        { v: "stell", inf: "stellen", prep: "auf", n: "Tisch", g: "m", c: "A", sv: "ställer på bordet" },
+        { v: "leg", inf: "legen", prep: "in", n: "Bett", g: "n", c: "A", sv: "lägger i sängen" },
+        { v: "häng", inf: "hängen", prep: "an", n: "Wand", g: "f", c: "A", sv: "hänger på väggen" },
+        { v: "setz", inf: "setzen", prep: "auf", n: "Stuhl", g: "m", c: "A", sv: "sätter på stolen" },
+        { v: "lieg", inf: "liegen", prep_de: "auf", n: "Sofa", g: "n", c: "D", sv: "ligger på soffan" },
+        { v: "steh", inf: "stehen", prep_de: "in", n: "Regal", g: "n", c: "D", sv: "står i hyllan" },
+        { v: "sitz", inf: "sitzen", prep_de: "in", n: "Sessel", g: "m", c: "D", sv: "sitter i fåtöljen" },
+        { v: "stell", inf: "stellen", prep: "neben", n: "Schrank", g: "m", c: "A", sv: "ställer bredvid skåpet" },
+        { v: "steh", inf: "stehen", prep_de: "vor", n: "Kommode", g: "f", c: "D", sv: "står framför kommoden" },
+        { v: "leg", inf: "legen", prep: "på", prep_de: "auf", n: "Teppich", g: "m", c: "A", sv: "lägger på mattan" }
     ];
 
     let current = {};
     let score = 0;
 
     function init() {
-        current = scenarios[Math.floor(Math.random() * scenarios.length)];
-        document.getElementById('quest-text').innerText = `Hur säger man "${current.v_sv} ${current.prep}..."?`;
-        document.getElementById('verb-display').innerText = current.v;
-        document.getElementById('noun-display').innerText = current.n;
-        document.getElementById('prep-display').innerText = current.prep_de;
+        const sc = scenarios[Math.floor(Math.random() * scenarios.length)];
+        const pr = pronouns[Math.floor(Math.random() * pronouns.length)];
+        
+        let conjugatedVerb = sc.v + pr.ending;
+        if (sc.v === "setz" && pr.de === "du") conjugatedVerb = "setzt"; 
+        if (sc.v === "setz" && (pr.de === "er" || pr.de === "ihr")) conjugatedVerb = "setzt";
+
+        let art = (sc.c === "A") ? 
+            ((sc.g === "m") ? "den" : (sc.g === "f") ? "die" : "das") : 
+            ((sc.g === "m" || sc.g === "n") ? "dem" : "der");
+
+        const prep = sc.prep_de || sc.prep;
+        
+        current = {
+            fullAnswer: `${pr.de} ${conjugatedVerb} ${prep} ${art} ${sc.n}`.toLowerCase(),
+            swedish: `${pr.sv} ${sc.sv}.`,
+            case: sc.c,
+            genus: sc.g,
+            inf: sc.inf,
+            subj: pr.de,
+            noun: sc.n,
+            prep: prep
+        };
+
+        document.getElementById('quest-text').innerText = current.swedish;
+        document.getElementById('subj-display').innerText = current.subj;
+        document.getElementById('verb-display').innerText = current.inf;
+        document.getElementById('noun-display').innerText = current.noun;
+        
+        const gTag = document.getElementById('genus-display');
+        gTag.innerText = current.genus.toUpperCase();
+        gTag.className = 'genus-tag ' + current.genus;
+
+        document.getElementById('prep-display').innerText = current.prep;
         document.getElementById('user-answer').value = "";
         document.getElementById('feedback').style.display = "none";
     }
 
     function checkAnswer() {
-        const user = document.getElementById('user-answer').value.trim().toLowerCase();
-        let art = "";
-        if (current.c === "A") {
-            art = (current.g === "m") ? "den" : (current.g === "f") ? "die" : "das";
-        } else {
-            art = (current.g === "m" || current.g === "n") ? "dem" : "der";
-        }
-        
-        const correct = `${current.prep_de} ${art} ${current.n}`.toLowerCase();
+        const user = document.getElementById('user-answer').value.trim().toLowerCase().replace(/[.!?]$/, "");
         const feedback = document.getElementById('feedback');
         
-        if (user === correct) {
-            feedback.innerHTML = "✅ Snyggt! Rätt svar.";
+        if (user === current.fullAnswer) {
+            feedback.innerHTML = `✅ Rätt! <br><small>${current.fullAnswer}</small>`;
             feedback.style.background = "#d4edda";
             score++;
             updateProgress();
-            setTimeout(init, 1500);
+            setTimeout(init, 2000);
         } else {
-            feedback.innerHTML = `❌ Fel. Rätt svar: <b>${correct}</b><br>(Tips: ${current.c === 'A' ? 'Ackusativ' : 'Dativ'} efter '${current.v}')`;
+            feedback.innerHTML = `❌ Fel. <br>Rätt: <b>${current.fullAnswer}</b>`;
             feedback.style.background = "#f8d7da";
         }
         feedback.style.display = "block";
@@ -101,15 +169,14 @@
 
     function updateProgress() {
         document.getElementById('progress-bar').style.width = (score * 10) + "%";
-        if(score >= 10) alert("Bra jobbat! Du har klarat 10 poäng.");
     }
 
-    function showHint() {
-        alert(`Genus för ${current.n} är ${current.g === 'm' ? 'maskulinum (der)' : current.g === 'f' ? 'femininum (die)' : 'neutrum (das)'}.`);
-    }
+    // Lyssna på Enter-tangenten
+    document.getElementById("user-answer").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") checkAnswer();
+    });
 
     window.onload = init;
 </script>
-
 </body>
 </html>
