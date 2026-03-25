@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Växelprepositioner - Träningsprogram</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+            --text: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 { text-align: center; color: var(--primary); margin-bottom: 10px; }
+        .sub-header { text-align: center; font-size: 0.9rem; margin-bottom: 20px; color: #7f8c8d; }
+
+        .progress-container {
+            background: #eee;
+            border-radius: 10px;
+            height: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        #progress-bar {
+            background: var(--success);
+            width: 0%;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .task-card {
+            background: #f9f9f9;
+            border-left: 5px solid var(--primary);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .hint-icon {
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-left: 10px;
+            filter: grayscale(1);
+            transition: 0.2s;
+        }
+        .hint-icon:hover { filter: grayscale(0); transform: scale(1.2); }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .history {
+            margin-top: 30px;
+            font-size: 0.85rem;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🇩🇪 Wechselpräpositionen</h1>
+    <p class="sub-header">Öva på Position (Dativ) & Förflyttning (Ackusativ)</p>
+    
+    <div class="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+
+    <div id="quiz-area">
+        <div class="task-card">
+            <p><strong>Verb:</strong> <span id="verb-display">Laddar...</span></p>
+            <p><strong>Substantiv:</strong> <span id="noun-display">Laddar...</span> <span class="hint-icon" title="Klicka för ledtråd" onclick="showHint()">✉️</span></p>
+        </div>
+
+        <input type="text" id="user-answer" placeholder="Skriv t.ex: in dem Regal" autocomplete="off">
+        <button id="submit-btn" onclick="checkAnswer()">Kontrollera svar</button>
+        <div id="feedback" class="feedback"></div>
+    </div>
+
+    <div class="history">
+        <strong>Senaste resultat:</strong>
+        <ul id="history-list" style="list-style: none; padding: 0;"></ul>
+    </div>
+</div>
+
+<script>
+    const nouns = [
+        {word: "Bett", g: "n"}, {word: "Teppich", g: "m"}, {word: "Lampe", g: "f"},
+        {word: "Stuhl", g: "m"}, {word: "Schreibtisch", g: "m"}, {word: "Regal", g: "n"},
+        {word: "Schrank", g: "m"}, {word: "Kommode", g: "f"}, {word: "Sessel", g: "m"},
+        {word: "Sofa", g: "n"}, {word: "Tisch", g: "m"}, {word: "Bild", g: "n"},
+        {word: "Laptop", g: "m"}, {word: "Fernseher", g: "m"}, {word: "Kissen", g: "n"}
+    ];
+
+    const verbs = [
+        {v: "hängen", case: "D", sv: "hänger (position)"},
+        {v: "hängen", case: "A", sv: "hänger upp (rörelse)"},
+        {v: "stellen", case: "A", sv: "ställer"},
+        {v: "stehen", case: "D", sv: "står"},
+        {v: "setzen", case: "A", sv: "sätter"},
+        {v: "sitzen", case: "D", sv: "sitter"},
+        {v: "legen", case: "A", sv: "lägger"},
+        {v: "liegen", case: "D", sv: "ligger"},
+        {v: "sein", case: "D", sv: "är"}
+    ];
+
+    const preps = ["an", "auf", "hinter", "in", "neben", "über", "unter", "vor", "zwischen"];
+
+    let currentTask = {};
+    let solvedCount = 0;
+    const totalQuestions = 10;
+
+    function generateTask() {
+        const verb = verbs[Math.floor(Math.random() * verbs.length)];
+        const noun = nouns[Math.floor(Math.random() * nouns.length)];
+        const prep = preps[Math.floor(Math.random() * preps.length)];
+        
+        let article = "";
+        if (verb.case === "A") {
+            article = (noun.g === "m") ? "den" : (noun.g === "f") ? "die" : "das";
+        } else {
+            article = (noun.g === "m" || noun.g === "n") ? "dem" : "der";
+        }
+
+        currentTask = { 
+            verb: verb.v, 
+            noun: noun.word, 
+            genus: noun.g, 
+            prep: prep, 
+            answer: `${prep} ${article} ${noun.word}`,
+            case: verb.case
+        };
+
+        document.getElementById('verb-display').innerText = `${verb.v} (${verb.sv})`;
+        document.getElementById('noun-display').innerText = noun.word;
+        document.getElementById('user-answer').value = "";
+        document.getElementById('user-answer').focus();
+        document.getElementById('feedback').style.display = "none";
+        document.getElementById('submit-btn').disabled = false;
+    }
+
+    function checkAnswer() {
+        const userVal = document.getElementById('user-answer').value.trim().toLowerCase();
+        const feedback = document.getElementById('feedback');
+        
+        // Hantera sammandragningar som 'im' eller 'am' (frivilligt men snällt mot eleverna)
+        let processedAnswer = currentTask.answer.toLowerCase();
+        if (processedAnswer === "in dem " + currentTask.noun.toLowerCase()) processedAnswer = processedAnswer.replace("in dem", "im");
+        if (processedAnswer === "an dem " + currentTask.noun.toLowerCase()) processedAnswer = processedAnswer.replace("an dem", "am");
+
+        if (userVal === currentTask.answer.toLowerCase() || userVal === processedAnswer) {
+            feedback.innerHTML = `✅ Snyggt! <b>${currentTask.answer}</b> är rätt.`;
+            feedback.style.backgroundColor = "#d4edda";
+            feedback.style.color = "#155724";
+            solvedCount++;
+            updateProgress();
+        } else {
+            feedback.innerHTML = `❌ Inte riktigt. Rätt svar: <b>${currentTask.answer}</b><br><small>Kasus: ${currentTask.case === 'A' ? 'Ackusativ (rörelse)' : 'Dativ (befintlighet)'}</small>`;
+            feedback.style.backgroundColor = "#f8d7da";
+            feedback.style.color = "#721c24";
+        }
+        
+        feedback.style.display = "block";
+        document.getElementById('submit-btn').disabled = true;
+        
+        if(solvedCount < totalQuestions) {
+            setTimeout(generateTask, 2000);
+        } else {
+            finishQuiz();
+        }
+    }
+
+    function updateProgress() {
+        const percent = (solvedCount / totalQuestions) * 100;
+        document.getElementById('progress-bar').style.width = percent + "%";
+    }
+
+    function showHint() {
+        alert(`Ledtråd:\nOrdet '${currentTask.noun}' är ${currentTask.genus === 'm' ? 'maskulinum (der)' : currentTask.genus === 'f' ? 'femininum (die)' : 'neutrum (das)'}.\n\nVerbet '${currentTask.verb}' signalerar ${currentTask.case === 'A' ? 'förflyttning (Ackusativ)' : 'befintlighet (Dativ)'}.`);
+    }
+
+    function finishQuiz() {
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        const historyList = document.getElementById('history-list');
+        const li = document.createElement('li');
+        li.style.padding = "5px 0";
+        li.innerHTML = `📅 ${now.toLocaleDateString()} kl ${timeStr} — <span style="color: green;">Klarade ${totalQuestions} frågor!</span>`;
+        historyList.prepend(li);
+        
+        alert("Wunderbar! Du är klar med alla frågor.");
+        solvedCount = 0;
+        updateProgress();
+        setTimeout(generateTask, 1000);
+    }
+
+    // Lyssna på Enter-tangenten
+    document.getElementById("user-answer").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            checkAnswer();
+        }
+    });
+
+    // STARTA PROGRAMMET MANUELLT NÄR SIDAN LADDATS
+    window.onload = generateTask;
+</script>
+
+</body>
+</html>
